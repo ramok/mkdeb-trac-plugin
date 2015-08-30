@@ -1,1 +1,12 @@
 Making .deb from trac plugins
+
+List of Trac plugins:
+http://trac.edgewall.org/wiki/PluginList
+https://trac-hacks.org/wiki/HackIndex
+
+Create new port for plugin:
+1. copy existing port pluging directory
+2. fix file 'get'
+
+Build all plugins in zsh:
+./mkdeb-trac-plugin *(/)

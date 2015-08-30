@@ -1,0 +1,6 @@
+svn co http://trac-hacks.org/svn/screenshotsplugin/$VER $PKG_DIR
+
+pushd $PKG_DIR
+sed -i 's/Barto./Barton/' setup.py
+popd
+

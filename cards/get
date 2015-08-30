@@ -1,0 +1,1 @@
+svn co http://trac-hacks.org/svn/cardsplugin/trunk $PKG_DIR

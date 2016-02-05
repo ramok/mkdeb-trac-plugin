@@ -59,7 +59,7 @@ for F in $DIRS; do
 
     pwd
     mv deb_dist/*deb .
-    $DO_CLEAN && rm -r $PKG_DIR_CURR deb_dist
+    $DO_CLEAN && rm -fr $PKG_DIR_CURR deb_dist
 
     cd ..
     PKG="$PKG $(ls -t $1/*deb | head -n 1)"

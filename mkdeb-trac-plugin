@@ -18,56 +18,114 @@ while getopts "ns" OPT; do
 done
 
 shift $((OPTIND - 1))
+ACTION=$1
+shift
 
-if [ -z "$1" -o ! -d "$1" -o ! -e "$1/get" ]; then
+if [ -z "$1" ]; then
     cat <<- END 1>&2
-        Usage: $PROG plugin-dir 
+        Usage: $PROG build|install|autoinstall|create plugin-dir
         Make debian package for Trac Plugin
 
         -n  - do not remove sources after deb build
         -s  - run shell in prepared package directory before building
+
+        build pkg   - build package
+        install pkg - build package
+        autoinstall repo-url - create recipe from repo-url (svn/git autodetect)
 END
     exit 1
 fi
 
+do_build() {
+    if [ ! -d "$1" -o ! -e "$1/get" ]; then
+        echo "directory $1 or file $1/get do not exist" >&2
+        exit 3
+    fi
 
-cd $1
-. ./get
+    cd $1
+    . ./get
 
 set -x
 
-DIRS=$(find $PKG_DIR -name setup.py)
-for F in $DIRS; do
-    PKG_DIR_CURR=$(dirname $F)
-    cd $PKG_DIR_CURR
-    python setup.py sdist
-    cd -
+    DIRS=$(find $PKG_DIR -name setup.py)
+    for F in $DIRS; do
+        PKG_DIR_CURR=$(dirname $F)
+        cd $PKG_DIR_CURR
+        python setup.py sdist
+        cd -
 
-    py2dsc $PKG_DIR_CURR/dist/*tar.gz
+        py2dsc $PKG_DIR_CURR/dist/*tar.gz
 
-    pushd $(find deb_dist/* -maxdepth 0 -type d | grep -v orig)
-    sed -i -e 's/\(Package: \)\(python-\(trac\)\?\)\?/\1trac-/' debian/control
+        pushd $(find deb_dist/* -maxdepth 0 -type d | grep -v orig)
+        sed -i -e '/^\(Package:\) \(python-\(trac\)\?\|trac-\?\)\?/!b;s//\1 trac-/;s/plugin//' debian/control
 
-    if $DO_DEV_SHELL; then
-        if ! bash -i; then
-            exit $?
+        if $DO_DEV_SHELL; then
+            if ! bash -i; then
+                exit $?
+            fi
         fi
+
+        dpkg-buildpackage -b -d -us -uc
+        popd
+
+        pwd
+        mv deb_dist/*deb .
+        $DO_CLEAN && rm -fr $PKG_DIR_CURR deb_dist
+
+        cd ..
+        PKG="$PKG $(ls -t $1/*deb | head -n 1)"
+        cd - > /dev/null
+        pwd
+    done
+    $DO_CLEAN && [ -d $PKG_DIR ] && rm -rf $PKG_DIR
+
+    set +x
+}
+
+show_tips() {
+    echo ===================
+    echo sudo dpkg -i $PKG
+}
+
+get_csv() {
+    case $@ in
+        *svn*) echo "svn co $@";;
+        *git*) echo "git clone $@";;
+        *zip) echo "wget -qO- '$@' | jac xv"
+    esac
+}
+
+do_create() {
+    DIR=$(echo $@|sed 's,\(tags\)\?/\(trunk\|[0-9.]*\)/\?$,,;s,.*/\(trac-\?\)\?,,;s,/$,,')
+    if [ -d "$DIR" ]; then
+        echo "Directory $DIR already exist" >&2
+        exit 1
     fi
+    CMD=$(get_csv $@)
+    if [ -z "$CMD" ]; then
+        echo "Can detect CSV from url" >&2
+        exit 2
+    fi
+    mkdir $DIR
+cat << END > $DIR/get
+$CMD \$PKG_DIR
+END
+    echo $DIR
+}
 
-    dpkg-buildpackage -b -d -us -uc
-    popd
+case $ACTION in
+    build|b)
+        do_build $@
+        show_tips
+        ;;
+    install|i)
+        do_build $@
+        sudo dpkg -i $PKG
+        ;;
+    autoinstall|ai)
+        DIR=$(do_create $@)
+        do_build $DIR
+        show_tips
+        ;;
+esac
 
-    pwd
-    mv deb_dist/*deb .
-    $DO_CLEAN && rm -fr $PKG_DIR_CURR deb_dist
-
-    cd ..
-    PKG="$PKG $(ls -t $1/*deb | head -n 1)"
-    cd - > /dev/null
-    pwd
-done
-$DO_CLEAN && [ -d $PKG_DIR ] && rm -rf $PKG_DIR
-
-set +x
-echo ===================
-echo sudo dpkg -i $PKG

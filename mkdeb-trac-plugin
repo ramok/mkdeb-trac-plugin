@@ -6,13 +6,15 @@ PKG_DIR=src
 
 DO_CLEAN=true
 DO_DEV_SHELL=false
+VERBOSE=false
 
 PROG=$(basename $0)
 
-while getopts "ns" OPT; do
+while getopts "nsv" OPT; do
     case $OPT in
         n) DO_CLEAN=false            ;;
         s) DO_DEV_SHELL=true         ;;
+        v) VERBOSE=true              ;;
         *) echo "Invalid option" >&2 ;;
     esac
 done
@@ -45,7 +47,7 @@ do_build() {
     cd $1
     . ./get
 
-set -x
+    $VERBOSE && set -x
 
     DIRS=$(find $PKG_DIR -name setup.py)
     for F in $DIRS; do
@@ -79,7 +81,7 @@ set -x
     done
     $DO_CLEAN && [ -d $PKG_DIR ] && rm -rf $PKG_DIR
 
-    set +x
+    $VERBOSE && set +x
 }
 
 show_tips() {

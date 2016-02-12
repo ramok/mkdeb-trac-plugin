@@ -1,6 +1,8 @@
 #!/bin/bash -e
 # by komar@evologics.de
 
+DIR_REPO=repo
+
 VER=0.12
 PKG_DIR=src
 
@@ -39,6 +41,7 @@ END
 fi
 
 do_build() {
+    pushd ports > /dev/null
     if [ ! -d "$1" -o ! -e "$1/get" ]; then
         echo "directory $1 or file $1/get do not exist" >&2
         exit 3
@@ -58,7 +61,7 @@ do_build() {
 
         py2dsc $PKG_DIR_CURR/dist/*tar.gz
 
-        pushd $(find deb_dist/* -maxdepth 0 -type d | grep -v orig)
+        pushd $(find deb_dist/* -maxdepth 0 -type d | grep -v orig) > /dev/null
         sed -i -e '/^\(Package:\) \(python-\(trac\)\?\|trac-\?\)\?/!b;s//\1 trac-/;s/plugin//' debian/control
 
         if $DO_DEV_SHELL; then
@@ -68,19 +71,21 @@ do_build() {
         fi
 
         dpkg-buildpackage -b -d -us -uc
-        popd
+        popd > /dev/null
 
-        pwd
-        mv deb_dist/*deb .
+        pushd deb_dist > /dev/null
+        PKG="$PKG $(echo *deb)"
+        popd > /dev/null
+        mv deb_dist/*deb $DIR_REPO
         $DO_CLEAN && rm -fr $PKG_DIR_CURR deb_dist
 
-        cd ..
-        PKG="$PKG $(ls -t $1/*deb | head -n 1)"
-        cd - > /dev/null
-        pwd
+        #cd ..
+        #PKG="$PKG $(ls -t $1/*deb | head -n 1)"
+        #cd - > /dev/null
     done
     $DO_CLEAN && [ -d $PKG_DIR ] && rm -rf $PKG_DIR
 
+    popd > /dev/null # pushd ports
     $VERBOSE && set +x
 }
 
@@ -114,6 +119,13 @@ $CMD \$PKG_DIR
 END
     echo $DIR
 }
+
+[ -d $DIR_REPO ] || mkdir -p $DIR_REPO
+
+case $DIR_REPO in
+    /*) ;;
+    *) DIR_REPO=$PWD/$DIR_REPO ;;
+esac
 
 case $ACTION in
     build|b)

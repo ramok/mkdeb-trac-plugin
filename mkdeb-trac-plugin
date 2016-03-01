@@ -37,7 +37,7 @@ while getopts "nsv" OPT; do
         n) DO_CLEAN=false            ;;
         s) DO_DEV_SHELL=true         ;;
         v) VERBOSE=true              ;;
-        *) echo "Invalid option" >&2 ;;
+        *) echo "ERROR: invalid option" >&2 ;;
     esac
 done
 
@@ -54,7 +54,7 @@ ports_list() {
 do_build() {
     pushd $DIR_PORTS > /dev/null
     if [ ! -d "$1" -o ! -e "$1/get" ]; then
-        echo "directory $1 or file $1/get do not exist" >&2
+        echo "ERROR: directory $1 or file $1/get do not exist" >&2
         exit 3
     fi
 
@@ -121,7 +121,7 @@ do_create() {
     if echo "$U" | grep -q 'trac-hacks.org/wiki'; then
         P=$(wget -qO- "$U" | sed -n 's/You can check out.*from[^"]*"//;tz;b;:z;s/".*//p')
         if [ -z "$P" ]; then
-            echo "Can't parse repository url from trac-hacks.org page" >&2
+            echo "ERROR: can't parse repository url from trac-hacks.org page" >&2
             exit 1
         fi
 
@@ -131,12 +131,12 @@ do_create() {
 
     DIR=$(echo $U|sed 's,\(tags\)\?/\(trunk\|branch\|[0-9.]*\)/\?$,,;s,.*/\(trac-\?\)\?,,;s,/$,,')
     if [ -d "$DIR_PORTS/$DIR" ]; then
-        echo "Directory $DIR_PORTS/$DIR already exist" >&2
+        echo "ERROR: directory $DIR_PORTS/$DIR already exist" >&2
         exit 1
     fi
     CMD=$(get_csv $U)
     if [ -z "$CMD" ]; then
-        echo "Can detect CSV from url" >&2
+        echo "ERROR: can't detect CSV from url" >&2
         exit 2
     fi
     mkdir -p $DIR_PORTS/$DIR

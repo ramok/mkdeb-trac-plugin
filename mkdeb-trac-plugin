@@ -1,7 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash
 # by komar@evologics.de
 
 DIR_REPO=repo
+DIR_PORTS=ports
 
 VER=0.12
 PKG_DIR=src
@@ -11,6 +12,25 @@ DO_DEV_SHELL=false
 VERBOSE=false
 
 PROG=$(basename $0)
+
+########################################
+show_help() {
+    cat <<- END 1>&2
+        Usage: $PROG list|build|install|autoinstall|create plugin-dir
+        Make debian package for Trac Plugin
+
+        -v  - verbose output
+        -n  - do not remove sources after deb build
+        -s  - run shell in prepared package directory before building
+
+        list        - list of recipes
+        build pkg   - build package
+        install pkg - build package
+        autoinstall repo-url - create recipe from repo-url (svn/git/trac-hacks.org autodetect)
+END
+    exit 1
+}
+########################################
 
 while getopts "nsv" OPT; do
     case $OPT in
@@ -25,23 +45,14 @@ shift $((OPTIND - 1))
 ACTION=$1
 shift
 
-if [ -z "$1" ]; then
-    cat <<- END 1>&2
-        Usage: $PROG build|install|autoinstall|create plugin-dir
-        Make debian package for Trac Plugin
-
-        -n  - do not remove sources after deb build
-        -s  - run shell in prepared package directory before building
-
-        build pkg   - build package
-        install pkg - build package
-        autoinstall repo-url - create recipe from repo-url (svn/git autodetect)
-END
-    exit 1
-fi
+ports_list() {
+    pushd $DIR_PORTS > /dev/null
+    find . -name get | sed 's,\./,,;s,/.*,,'
+    popd > /dev/null
+}
 
 do_build() {
-    pushd ports > /dev/null
+    pushd $DIR_PORTS > /dev/null
     if [ ! -d "$1" -o ! -e "$1/get" ]; then
         echo "directory $1 or file $1/get do not exist" >&2
         exit 3
@@ -56,6 +67,7 @@ do_build() {
     for F in $DIRS; do
         PKG_DIR_CURR=$(dirname $F)
         cd $PKG_DIR_CURR
+        set -e
         python setup.py sdist
         cd -
 
@@ -71,10 +83,11 @@ do_build() {
         fi
 
         dpkg-buildpackage -b -d -us -uc
+        set +e
         popd > /dev/null
 
         pushd deb_dist > /dev/null
-        PKG="$PKG $(echo *deb)"
+        PKG="$DIR_REPO/$(echo *deb) $PKG"
         popd > /dev/null
         mv deb_dist/*deb $DIR_REPO
         $DO_CLEAN && rm -fr $PKG_DIR_CURR deb_dist
@@ -85,39 +98,55 @@ do_build() {
     done
     $DO_CLEAN && [ -d $PKG_DIR ] && rm -rf $PKG_DIR
 
-    popd > /dev/null # pushd ports
+    popd > /dev/null # pushd $DIR_PORTS
     $VERBOSE && set +x
 }
 
 show_tips() {
     echo ===================
     echo sudo dpkg -i $PKG
+    echo sudo service apache2 restart
 }
 
 get_csv() {
     case $@ in
         *svn*) echo "svn co $@";;
         *git*) echo "git clone $@";;
-        *zip) echo "wget -qO- '$@' | jac xv"
+        *zip)  echo "wget -qO- '$@' | jac xv"
     esac
 }
 
 do_create() {
-    DIR=$(echo $@|sed 's,\(tags\)\?/\(trunk\|[0-9.]*\)/\?$,,;s,.*/\(trac-\?\)\?,,;s,/$,,')
-    if [ -d "$DIR" ]; then
-        echo "Directory $DIR already exist" >&2
+    U="$@"
+    if echo "$U" | grep -q 'trac-hacks.org/wiki'; then
+        P=$(wget -qO- "$U" | sed -n 's/You can check out.*from[^"]*"//;tz;b;:z;s/".*//p')
+        if [ -z "$P" ]; then
+            echo "Can't parse repository url from trac-hacks.org page" >&2
+            exit 1
+        fi
+
+        U="https://trac-hacks.org$P"
+        unset P
+    fi
+
+    DIR=$(echo $U|sed 's,\(tags\)\?/\(trunk\|branch\|[0-9.]*\)/\?$,,;s,.*/\(trac-\?\)\?,,;s,/$,,')
+    if [ -d "$DIR_PORTS/$DIR" ]; then
+        echo "Directory $DIR_PORTS/$DIR already exist" >&2
         exit 1
     fi
-    CMD=$(get_csv $@)
+    CMD=$(get_csv $U)
     if [ -z "$CMD" ]; then
         echo "Can detect CSV from url" >&2
         exit 2
     fi
-    mkdir $DIR
-cat << END > $DIR/get
+    mkdir -p $DIR_PORTS/$DIR
+cat << END > $DIR_PORTS/$DIR/get
 $CMD \$PKG_DIR
+pushd \$PKG_DIR
+# put paching commands here
+popd
 END
-    echo $DIR
+    export DIR
 }
 
 [ -d $DIR_REPO ] || mkdir -p $DIR_REPO
@@ -127,19 +156,44 @@ case $DIR_REPO in
     *) DIR_REPO=$PWD/$DIR_REPO ;;
 esac
 
+case $DIR_PORTS in
+    /*) ;;
+    *) DIR_PORTS=$PWD/$DIR_PORTS ;;
+esac
+
 case $ACTION in
+    all|a)
+        for P in $(ports_list); do
+            do_build $P
+        done
+        ;;
+    list|l)
+        if $VERBOSE; then
+            for P in $(ports_list); do
+                printf "%-20s %-60s\n" $P $(cat $DIR_PORTS/$P/get | sed -n 's,.* \([^ ]*://[^ ]*\).*\$PKG_DIR,\1,p')
+            done
+        else
+            ports_list
+        fi
+        ;;
     build|b)
+        [ -z "$1" ] && show_help
         do_build $@
         show_tips
         ;;
     install|i)
+        [ -z "$1" ] && show_help
         do_build $@
-        sudo dpkg -i $PKG
+        show_tips
         ;;
     autoinstall|ai)
-        DIR=$(do_create $@)
+        [ -z "$1" ] && show_help
+        do_create $@
         do_build $DIR
         show_tips
+        ;;
+    *)
+        show_help
         ;;
 esac
 

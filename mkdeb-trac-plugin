@@ -5,7 +5,7 @@ DIR_REPO=repo
 DIR_PORTS=ports
 
 VER=0.12
-PKG_DIR=src
+SRC_DIR=src
 
 DO_CLEAN=true
 DO_DEV_SHELL=false
@@ -63,15 +63,15 @@ do_build() {
 
     $VERBOSE && set -x
 
-    DIRS=$(find $PKG_DIR -name setup.py)
+    DIRS=$(find $SRC_DIR -name setup.py)
     for F in $DIRS; do
-        PKG_DIR_CURR=$(dirname $F)
-        cd $PKG_DIR_CURR
+        SRC_DIR_CURR=$(dirname $F)
+        cd $SRC_DIR_CURR
         set -e
         python setup.py sdist
         cd -
 
-        py2dsc $PKG_DIR_CURR/dist/*tar.gz
+        py2dsc $SRC_DIR_CURR/dist/*tar.gz
 
         pushd $(find deb_dist/* -maxdepth 0 -type d | grep -v orig) > /dev/null
         sed -i -e '/^\(Package:\) \(python-\(trac\)\?\|trac-\?\)\?/!b;s//\1 trac-/;s/plugin//' debian/control
@@ -90,13 +90,13 @@ do_build() {
         PKG="$DIR_REPO/$(echo *deb) $PKG"
         popd > /dev/null
         mv deb_dist/*deb $DIR_REPO
-        $DO_CLEAN && rm -fr $PKG_DIR_CURR deb_dist
+        $DO_CLEAN && rm -fr $SRC_DIR_CURR deb_dist
 
         #cd ..
         #PKG="$PKG $(ls -t $1/*deb | head -n 1)"
         #cd - > /dev/null
     done
-    $DO_CLEAN && [ -d $PKG_DIR ] && rm -rf $PKG_DIR
+    $DO_CLEAN && [ -d $SRC_DIR ] && rm -rf $SRC_DIR
 
     popd > /dev/null # pushd $DIR_PORTS
     $VERBOSE && set +x
@@ -141,8 +141,8 @@ do_create() {
     fi
     mkdir -p $DIR_PORTS/$DIR
 cat << END > $DIR_PORTS/$DIR/get
-$CMD \$PKG_DIR
-pushd \$PKG_DIR
+$CMD \$SRC_DIR
+pushd \$SRC_DIR
 # put paching commands here
 popd
 END
@@ -170,7 +170,7 @@ case $ACTION in
     list|l)
         if $VERBOSE; then
             for P in $(ports_list); do
-                printf "%-20s %-60s\n" $P $(cat $DIR_PORTS/$P/get | sed -n 's,.* \([^ ]*://[^ ]*\).*\$PKG_DIR,\1,p')
+                printf "%-20s %-60s\n" $P $(cat $DIR_PORTS/$P/get | sed -n 's,.* \([^ ]*://[^ ]*\).*\$SRC_DIR,\1,p')
             done
         else
             ports_list

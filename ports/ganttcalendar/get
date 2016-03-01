@@ -1,1 +1,4 @@
-svn co http://svn.osdn.jp/svnroot/shibuya-trac/plugins/ganttcalendarplugin/trunk $PKG_DIR
+svn co http://svn.osdn.jp/svnroot/shibuya-trac/plugins/ganttcalendarplugin/trunk $SRC_DIR
+pushd $SRC_DIR
+sed -i 's,\(LC_MESSAGES/.*\)\.mo,\1*.po,' setup.py
+popd

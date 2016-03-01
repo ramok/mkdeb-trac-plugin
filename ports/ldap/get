@@ -1,1 +1,1 @@
-svn co http://trac-hacks.org/svn/ldapplugin/$VER $PKG_DIR
+svn co http://trac-hacks.org/svn/ldapplugin/$VER $SRC_DIR

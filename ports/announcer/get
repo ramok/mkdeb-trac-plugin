@@ -1,1 +1,6 @@
-svn co http://trac-hacks.org/svn/announcerplugin/trunk $PKG_DIR
+svn co http://trac-hacks.org/svn/announcerplugin/trunk $SRC_DIR
+pushd $SRC_DIR
+sed -i 's,\(LC_MESSAGES/.*\)\.mo,\1*.po,' setup.py
+find . -name setup.py -exec sed -i '/test_suite/d' '{}' \;
+popd
+

@@ -1,1 +1,1 @@
-svn co http://trac-hacks.org/svn/themeengineplugin/trunk $PKG_DIR
+svn co http://trac-hacks.org/svn/themeengineplugin/trunk $SRC_DIR

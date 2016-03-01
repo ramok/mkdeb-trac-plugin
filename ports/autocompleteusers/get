@@ -2,7 +2,7 @@ echo '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
 echo need to pached,  see .patch in autocompeteusers directory
 echo https://trac-hacks.org/ticket/12664
 echo '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-svn co https://trac-hacks.org/svn/autocompleteusersplugin $PKG_DIR
-pushd $PKG_DIR
+svn co https://trac-hacks.org/svn/autocompleteusersplugin $SRC_DIR
+pushd $SRC_DIR
 find . -name MANIFEST.in | xargs sed -i 's,recursive-include autocompleteusers.*,& **/*.py **/*.js **/*.css **/*.gif,'
 popd

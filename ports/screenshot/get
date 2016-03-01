@@ -1,6 +1,7 @@
-svn co http://trac-hacks.org/svn/screenshotsplugin/$VER $PKG_DIR
+svn co http://trac-hacks.org/svn/screenshotsplugin/$VER $SRC_DIR
 
-pushd $PKG_DIR
+pushd $SRC_DIR
+sed -i 's,\(LC_MESSAGES/.*\)\.mo,\1*.po,' setup.py
 sed -i 's/Barto./Barton/' setup.py
 popd
 

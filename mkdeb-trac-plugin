@@ -16,7 +16,7 @@ PROG=$(basename $0)
 ########################################
 show_help() {
     cat <<- END 1>&2
-        Usage: $PROG list|build|install|autoinstall|create plugin-dir
+        Usage: $PROG list|build|install|autoinstall|create|cleanall [plugin-dir]
         Make debian package for Trac Plugin
 
         -v  - verbose output
@@ -27,6 +27,7 @@ show_help() {
         build pkg   - build package
         install pkg - build package
         autoinstall repo-url - create recipe from repo-url (svn/git/trac-hacks.org autodetect)
+        cleanall    - clean all ports
 END
     exit 1
 }
@@ -49,6 +50,17 @@ ports_list() {
     pushd $DIR_PORTS > /dev/null
     find . -name get | sed 's,\./,,;s,/.*,,'
     popd > /dev/null
+}
+
+do_clean() {
+    if [ ! -d "$1" -o ! -e "$1/get" ]; then
+        echo "WARNING: directory $1 not port directory. skip" >&2
+        return
+    fi
+    if [ -d "$1"/src -o -d "$1"/deb_dist ]; then
+        $VERBOSE && echo clean "$1"
+        rm -rf "$1"/src "$1"/deb_dist
+    fi
 }
 
 do_build() {
@@ -191,6 +203,11 @@ case $ACTION in
         do_create $@
         do_build $DIR
         show_tips
+        ;;
+    cleanall)
+            for P in $(ports_list); do
+                do_clean $DIR_PORTS/$P
+            done
         ;;
     *)
         show_help

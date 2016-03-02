@@ -173,6 +173,8 @@ case $DIR_PORTS in
     *) DIR_PORTS=$PWD/$DIR_PORTS ;;
 esac
 
+[ -d $DIR_PORTS ] || mkdir -p $DIR_PORTS
+
 case $ACTION in
     all|a)
         for P in $(ports_list); do

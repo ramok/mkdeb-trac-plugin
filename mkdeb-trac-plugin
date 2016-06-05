@@ -131,13 +131,13 @@ get_csv() {
 do_create() {
     U="$@"
     if echo "$U" | grep -q 'trac-hacks.org/wiki'; then
-        P=$(wget -qO- "$U" | sed -n '/\(You can check out\|Check out\).*from[^>]*href="/{s///;s/".*//p};/[Cc]heck out.*href="/{s///;s/".*//p}')
+        P=$(wget -qO- "$U" | sed -n '/\(\(You can check out\|Check out\).*from\|.*checkout a copy using\)[^>]*href="/{s///;s/".*//p};/[Cc]heck out.*href="/{s///;s/".*//p}')
         if [ -z "$P" ]; then
             echo "ERROR: can't parse repository url from trac-hacks.org page" >&2
             exit 1
         fi
 
-        case $@ in
+        case "$P" in
             http[s]://*) U=$P;;
             *)           U="https://trac-hacks.org$P" ;;
         esac

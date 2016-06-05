@@ -1,0 +1,4 @@
+git clone https://github.com/cboos/trac-mypage-plugin $SRC_DIR
+pushd $SRC_DIR
+find . -name setup.py -exec sed -i 's/tracext\.hg/tracext/;s,locale/,wiki/&,g' '{}' \;
+popd

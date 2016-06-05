@@ -1,0 +1,1 @@
+svn co https://trac-hacks.org/svn/graphvizplugin/trunk $SRC_DIR

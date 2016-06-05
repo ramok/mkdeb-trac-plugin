@@ -1,0 +1,4 @@
+git clone https://github.com/ejucovy/trac-WorkflowActionButtonsPlugin.git $SRC_DIR
+pushd $SRC_DIR
+# put paching commands here
+popd

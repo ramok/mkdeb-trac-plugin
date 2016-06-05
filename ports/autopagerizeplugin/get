@@ -1,0 +1,4 @@
+svn co https://trac-hacks.org/svn/autopagerizeplugin/1.0 $SRC_DIR
+pushd $SRC_DIR
+sed -i 's/AutoPagerize Enabler/AutoPagerizeEnabler/' setup.py
+popd

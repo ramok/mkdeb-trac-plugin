@@ -1,0 +1,5 @@
+svn co https://trac-hacks.org/svn/sectioneditplugin $SRC_DIR
+pushd $SRC_DIR
+# put paching commands here
+find . -name tracsectionedit.js -exec sed -i 's/\*\[@id\]/[id]/' '{}' \;
+popd

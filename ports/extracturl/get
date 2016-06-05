@@ -1,0 +1,1 @@
+svn co https://trac-hacks.org/svn/extracturlplugin/ $SRC_DIR

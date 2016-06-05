@@ -1,0 +1,2 @@
+svn co https://trac-hacks.org/svn/ccselectorplugin $SRC_DIR
+find $SRC_DIR -name setup.py -exec sed -i 's,\(LC_MESSAGES/.*\)\.mo,\1*.po,' '{}' \;

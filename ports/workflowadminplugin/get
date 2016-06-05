@@ -1,0 +1,9 @@
+svn co https://trac-hacks.org/svn/tracworkflowadminplugin/0.12 $SRC_DIR
+pushd $SRC_DIR
+sed -i 's,\(LC_MESSAGES/.*\)\.mo,\1*.po,' setup.py
+
+# see ../../BUGS
+cp ../jquery-migrate-1.1.1.js tracworkflowadmin/htdocs/scripts/
+sed -i "s|jquery.multiselect.js.*|&\n        add_script(req, 'tracworkflowadmin/scripts/jquery-migrate-1.1.1.js')|" tracworkflowadmin/web_ui.py
+sed -i 's/png/svg/g' tracworkflowadmin/web_ui.py
+popd

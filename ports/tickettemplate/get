@@ -1,0 +1,1 @@
+svn co https://trac-hacks.org/svn/tractickettemplateplugin/1.0 $SRC_DIR

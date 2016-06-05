@@ -1,0 +1,4 @@
+svn co https://trac-hacks.org/svn/bookmarkplugin $SRC_DIR
+pushd $SRC_DIR
+find . -name setup.py -exec sed -i '/test_suite/d' '{}' \;
+popd

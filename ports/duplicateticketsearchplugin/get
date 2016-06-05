@@ -1,0 +1,4 @@
+svn co https://trac-hacks.org/svn/duplicateticketsearchplugin $SRC_DIR
+pushd $SRC_DIR
+# put paching commands here
+popd

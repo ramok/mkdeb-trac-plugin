@@ -1,0 +1,4 @@
+svn co https://trac-hacks.org/svn/tracdragdropplugin/ $SRC_DIR
+pushd $SRC_DIR
+sed -i 's,\(LC_MESSAGES/tracdragdrop\).mo,\1*.po,' */setup.py
+popd

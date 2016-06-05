@@ -1,0 +1,62 @@
+--- user_reports.py.ori	2013-10-20 01:16:58.456872526 +0200
++++ user_reports.py	2013-10-20 01:16:25.633440759 +0200
+@@ -107,11 +107,11 @@
+     WHERE reporter = '%s' AND time >= %s AND time <= %s 
+     """
+     sql_expr = sql_expr % (user,
+-                           datetime_to_secs(start),
+-                           datetime_to_secs(end))
++                           datetime_to_secs(start)*1000000,
++                           datetime_to_secs(end)*1000000)
+     def map_rows(xx):
+         import datetime
+-        return (xx[0], datetime.datetime.fromtimestamp(xx[1]), None)
++        return (xx[0], datetime.datetime.fromtimestamp(xx[1]/1000000), None)
+     user_created_tickets = execute_sql_expression(db, sql_expr, map_rows)
+     return user_created_tickets
+ 
+@@ -127,11 +127,11 @@
+         AND (newvalue = 'closed' or newvalue = 'reopened')
+     """
+     sql_expr = sql_expr % (user,
+-                           datetime_to_secs(start),
+-                           datetime_to_secs(end))
++                           datetime_to_secs(start)*1000000,
++                           datetime_to_secs(end)*1000000)
+     def map_rows(xx):
+         import datetime
+-        return (xx[0], datetime.datetime.fromtimestamp(xx[1]), xx[2])
++        return (xx[0], datetime.datetime.fromtimestamp(xx[1]/1000000), xx[2])
+     closed_or_reopened_tickets = execute_sql_expression(db, sql_expr, map_rows)
+     return closed_or_reopened_tickets
+ 
+@@ -147,11 +147,11 @@
+     WHERE ww.author = '%s' AND time > %s AND time < %s
+     """
+     sql_expr = sql_expr % (user,
+-                           datetime_to_secs(start),
+-                           datetime_to_secs(end))
++                           datetime_to_secs(start)*1000000,
++                           datetime_to_secs(end)*1000000)
+     def map_rows(xx):
+         import datetime
+-        return (datetime.datetime.fromtimestamp(xx[0]),xx[1])
++        return (datetime.datetime.fromtimestamp(xx[0]/1000000),xx[1])
+     wiki_pages = execute_sql_expression(db, sql_expr, map_rows)
+     
+     weeks_dic = get_weeks_elapsed(start, end)
+@@ -206,11 +206,11 @@
+     WHERE rr.author ='%s' AND time > %s AND time < %s
+     """
+     sql_expr = sql_expr % (user,
+-                           datetime_to_secs(start),
+-                           datetime_to_secs(end))
++                           datetime_to_secs(start)*1000000,
++                           datetime_to_secs(end)*1000000)
+     def map_rows(xx):
+         import datetime
+-        return datetime.datetime.fromtimestamp(xx[0])
++        return datetime.datetime.fromtimestamp(xx[0]/1000000)
+     raw_commits = execute_sql_expression(db, sql_expr, map_rows)
+     
+     weeks_dic = get_weeks_elapsed(start, end)

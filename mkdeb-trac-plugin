@@ -131,17 +131,20 @@ get_csv() {
 do_create() {
     U="$@"
     if echo "$U" | grep -q 'trac-hacks.org/wiki'; then
-        P=$(wget -qO- "$U" | sed -n 's/You can check out.*from[^"]*"//;tz;b;:z;s/".*//p')
+        P=$(wget -qO- "$U" | sed -n '/\(You can check out\|Check out\).*from[^>]*href="/{s///;s/".*//p};/[Cc]heck out.*href="/{s///;s/".*//p}')
         if [ -z "$P" ]; then
             echo "ERROR: can't parse repository url from trac-hacks.org page" >&2
             exit 1
         fi
 
-        U="https://trac-hacks.org$P"
+        case $@ in
+            http[s]://*) U=$P;;
+            *)           U="https://trac-hacks.org$P" ;;
+        esac
         unset P
     fi
 
-    DIR=$(echo $U|sed 's,\(tags\)\?/\(trunk\|branch\|[0-9.]*\)/\?$,,;s,.*/\(trac-\?\)\?,,;s,/$,,')
+    DIR=$(echo $U|sed 's,\(tags\)\?/\(trunk\|branch\|[0-9.]*\)/\?$,,;s,.*/\(trac-\?\)\?,,;s/\.git$//;s/.*/\L&\E/;s,/$,,')
     if [ -d "$DIR_PORTS/$DIR" ]; then
         echo "ERROR: directory $DIR_PORTS/$DIR already exist" >&2
         exit 1

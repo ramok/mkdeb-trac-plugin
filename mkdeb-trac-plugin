@@ -65,12 +65,13 @@ do_clean() {
 
 do_build() {
     pushd $DIR_PORTS > /dev/null
-    if [ ! -d "$1" -o ! -e "$1/get" ]; then
-        echo "ERROR: directory $1 or file $1/get do not exist" >&2
+    DIR=${1#ports/} # remove "ports"
+    if [ ! -d "$DIR" -o ! -e "$DIR/get" ]; then
+        echo "ERROR: directory $DIR or file $DIR/get do not exist" >&2
         exit 3
     fi
 
-    cd $1
+    cd $DIR
     . ./get
 
     $VERBOSE && set -x

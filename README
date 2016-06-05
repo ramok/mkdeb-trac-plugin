@@ -8,5 +8,8 @@ Create new port for plugin:
 1. copy existing port pluging directory
 2. fix file 'get'
 
-Build all plugins in zsh:
-./mkdeb-trac-plugin *(/)
+Build all supported trac plugins:
+./mkdeb-trac-plugin ports/*
+
+Installing:
+dpkg -i repo/trac-name*.deb

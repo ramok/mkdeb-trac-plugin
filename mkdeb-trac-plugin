@@ -86,7 +86,7 @@ do_build() {
         py2dsc $SRC_DIR_CURR/dist/*tar.gz
 
         pushd $(find deb_dist/* -maxdepth 0 -type d | grep -v orig) > /dev/null
-        sed -i -e '/^\(Package:\) \(python-\(trac\)\?\|trac-\?\)\?/!b;s//\1 trac-/;s/plugin//' debian/control
+        sed -i -e '/^\(Package:\) \(python-\(trac-\?\)\?\|trac-\?\)\?/!b;s//\1 trac-/;s/plugin//' debian/control
 
         if $DO_DEV_SHELL; then
             if ! bash -i; then

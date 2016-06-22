@@ -1,4 +1,5 @@
 svn co https://trac-hacks.org/svn/tracticketchangelogplugin $SRC_DIR
 pushd $SRC_DIR
+sed -i '/include_package_data=True/d' setup.py
 # put paching commands here
 popd
